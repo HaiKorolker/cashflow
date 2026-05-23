@@ -344,6 +344,11 @@
             <input type="text" id="sync-server-url" class="form-control" placeholder="http://192.168.1.100:3000">
             <div class="form-text">לדוגמה: http://192.168.1.50:3000</div>
           </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">סיסמת סנכרון</label>
+            <input type="password" id="sync-token" class="form-control" placeholder="הסיסמה של אפליקציית המחשב">
+            <div class="form-text">אותה סיסמה שמשמשת להתחברות לשרת המחשב</div>
+          </div>
           <div class="d-flex gap-2 mb-3">
             <button class="btn btn-primary flex-grow-1" onclick="syncPull()">
               <i class="fas fa-download me-1"></i>ייבא מהמחשב

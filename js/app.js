@@ -228,16 +228,23 @@ function activateSettingsTab(tab) {
 
 // ─── SYNC ─────────────────────────────────────────────────────────────────────
 
-const SYNC_TOKEN = 'cashflow-sync';
+function getSyncParams() {
+  const url = document.getElementById('sync-server-url')?.value.trim().replace(/\/$/, '');
+  const token = document.getElementById('sync-token')?.value.trim();
+  if (!url) { showToast('נא להזין כתובת שרת', 'error'); return null; }
+  if (!token) { showToast('נא להזין סיסמת סנכרון', 'error'); return null; }
+  return { url, token };
+}
 
 async function syncPull() {
-  const urlInput = document.getElementById('sync-server-url');
-  const url = urlInput?.value.trim().replace(/\/$/, '');
-  if (!url) { showToast('נא להזין כתובת שרת', 'error'); return; }
+  const params = getSyncParams();
+  if (!params) return;
+  const { url, token } = params;
   const status = document.getElementById('sync-status');
   if (status) status.textContent = 'מייבא...';
   try {
-    const res = await fetch(`${url}/api/sync/export`, { headers: { 'X-Sync-Token': SYNC_TOKEN } });
+    const res = await fetch(`${url}/api/sync/export`, { headers: { 'X-Sync-Token': token } });
+    if (res.status === 401) throw new Error('סיסמה שגויה');
     if (!res.ok) throw new Error(`שגיאת שרת ${res.status}`);
     const data = await res.json();
     await DB.importData(data);
@@ -254,18 +261,19 @@ async function syncPull() {
 }
 
 async function syncPush() {
-  const urlInput = document.getElementById('sync-server-url');
-  const url = urlInput?.value.trim().replace(/\/$/, '');
-  if (!url) { showToast('נא להזין כתובת שרת', 'error'); return; }
+  const params = getSyncParams();
+  if (!params) return;
+  const { url, token } = params;
   const status = document.getElementById('sync-status');
   if (status) status.textContent = 'שולח...';
   try {
     const data = await DB.exportData();
     const res = await fetch(`${url}/api/sync/import`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Sync-Token': SYNC_TOKEN },
+      headers: { 'Content-Type': 'application/json', 'X-Sync-Token': token },
       body: JSON.stringify(data)
     });
+    if (res.status === 401) throw new Error('סיסמה שגויה');
     if (!res.ok) throw new Error(`שגיאת שרת ${res.status}`);
     await DB.setSetting('sync_server_url', url);
     showToast('הנתונים נשלחו למחשב בהצלחה');
