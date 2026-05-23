@@ -228,46 +228,84 @@ function activateSettingsTab(tab) {
 
 // ─── SYNC ─────────────────────────────────────────────────────────────────────
 
-function getSyncParams() {
-  const url = document.getElementById('sync-server-url')?.value.trim().replace(/\/$/, '');
-  const token = document.getElementById('sync-token')?.value.trim();
-  if (!url) { showToast('נא להזין כתובת שרת', 'error'); return null; }
-  if (!token) { showToast('נא להזין סיסמת סנכרון', 'error'); return null; }
-  return { url, token };
+function getSyncUrl() {
+  const raw = document.getElementById('sync-server-url')?.value.trim().replace(/\/$/, '');
+  if (!raw) { showToast('נא להזין כתובת שרת', 'error'); return null; }
+  // Convert http://IP:3000 → https://IP:3443  for direct sync
+  return raw.replace(/^http:\/\/(.+):3000$/, 'https://$1:3443');
 }
 
-function syncOpenPage() {
-  const url = document.getElementById('sync-server-url')?.value.trim().replace(/\/$/, '');
-  if (!url) { showToast('נא להזין כתובת שרת', 'error'); return; }
-  DB.setSetting('sync_server_url', url);
-  window.open(`${url}/pwa-sync`, '_blank');
+function getSyncToken() {
+  return document.getElementById('sync-token')?.value.trim() || '';
+}
+
+function setSyncStatus(msg) {
+  const el = document.getElementById('sync-status');
+  if (el) el.textContent = msg;
 }
 
 async function syncPull() {
-  // Fetch from HTTPS→HTTP is blocked by browsers (Mixed Content).
-  // Instead, open the desktop sync page directly in a new tab.
-  syncOpenPage();
+  const url = getSyncUrl();
+  if (!url) return;
+  const token = getSyncToken();
+  if (!token) { showToast('נא להזין סיסמת סנכרון', 'error'); return; }
+  setSyncStatus('מתחבר לשרת...');
+  try {
+    const res = await fetch(`${url}/api/sync/export`, {
+      headers: { 'X-Sync-Token': token }
+    });
+    if (res.status === 401) throw new Error('סיסמה שגויה');
+    if (!res.ok) throw new Error(`שגיאת שרת ${res.status}`);
+    const data = await res.json();
+    await DB.importData(data);
+    const raw = document.getElementById('sync-server-url')?.value.trim().replace(/\/$/, '');
+    await DB.setSetting('sync_server_url', raw);
+    await loadSettings();
+    showSection(currentSection);
+    const msg = `יובאו ${data.expenses?.length || 0} הוצאות, ${data.income?.length || 0} הכנסות`;
+    showToast(msg);
+    setSyncStatus(`✓ ${msg} — ${new Date().toLocaleTimeString('he-IL')}`);
+  } catch (e) {
+    const isCert = e instanceof TypeError && e.message.includes('fetch');
+    if (isCert) {
+      setSyncStatus('⚠️ תעודה לא מותקנת — ראה הוראות למטה');
+      showToast('יש להתקין את תעודת השרת תחילה', 'error');
+    } else {
+      setSyncStatus('✗ ' + e.message);
+      showToast('שגיאת ייבוא: ' + e.message, 'error');
+    }
+  }
 }
 
 async function syncPush() {
-  // Step 1: export JSON from the PWA
-  const data = await DB.exportData();
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  const date = new Date().toISOString().slice(0, 10);
-  a.download = `cashflow-phone-${date}.json`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-  // Step 2: open the desktop sync page so the user can upload the file
-  const url = document.getElementById('sync-server-url')?.value.trim().replace(/\/$/, '');
-  if (url) {
-    DB.setSetting('sync_server_url', url);
-    setTimeout(() => window.open(`${url}/pwa-sync`, '_blank'), 800);
+  const url = getSyncUrl();
+  if (!url) return;
+  const token = getSyncToken();
+  if (!token) { showToast('נא להזין סיסמת סנכרון', 'error'); return; }
+  setSyncStatus('שולח נתונים...');
+  try {
+    const data = await DB.exportData();
+    const res = await fetch(`${url}/api/sync/import`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Sync-Token': token },
+      body: JSON.stringify(data)
+    });
+    if (res.status === 401) throw new Error('סיסמה שגויה');
+    if (!res.ok) throw new Error(`שגיאת שרת ${res.status}`);
+    const raw = document.getElementById('sync-server-url')?.value.trim().replace(/\/$/, '');
+    await DB.setSetting('sync_server_url', raw);
+    showToast('הנתונים נשלחו למחשב בהצלחה');
+    setSyncStatus(`✓ נשלח — ${new Date().toLocaleTimeString('he-IL')}`);
+  } catch (e) {
+    const isCert = e instanceof TypeError && e.message.includes('fetch');
+    if (isCert) {
+      setSyncStatus('⚠️ תעודה לא מותקנת — ראה הוראות למטה');
+      showToast('יש להתקין את תעודת השרת תחילה', 'error');
+    } else {
+      setSyncStatus('✗ ' + e.message);
+      showToast('שגיאת שליחה: ' + e.message, 'error');
+    }
   }
-  showToast('הקובץ הורד — העלה אותו בדף הסנכרון שנפתח');
-  const status = document.getElementById('sync-status');
-  if (status) status.textContent = 'הקובץ הורד. בדף הסנכרון: לחץ "העלה נתונים מהטלפון" ← בחר את הקובץ.';
 }
 
 function renderCategoriesList() {
