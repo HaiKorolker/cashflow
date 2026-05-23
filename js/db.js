@@ -459,6 +459,7 @@ const DB = (() => {
 
   return {
     open, generateId,
+    getSetting, setSetting,
     getCategories, addCategory, deleteCategory,
     getPaymentMethods, addPaymentMethod, deletePaymentMethod,
     getExpenses, addExpense, updateExpense, deleteExpense,

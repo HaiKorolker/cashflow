@@ -296,6 +296,7 @@
           <li class="nav-item"><a class="nav-link active" href="#" data-settings-tab="categories"><i class="fas fa-tags me-1"></i>קטגוריות</a></li>
           <li class="nav-item"><a class="nav-link" href="#" data-settings-tab="payments"><i class="fas fa-credit-card me-1"></i>אמצעי תשלום</a></li>
           <li class="nav-item"><a class="nav-link" href="#" data-settings-tab="data"><i class="fas fa-database me-1"></i>גיבוי ושחזור</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-settings-tab="sync"><i class="fas fa-sync me-1"></i>סנכרון</a></li>
         </ul>
         <!-- Categories tab -->
         <div id="settings-tab-categories">
@@ -331,6 +332,27 @@
               <button class="btn btn-outline-warning" onclick="importDataJSON()"><i class="fas fa-upload me-2"></i>ייבא נתונים</button>
             </div></div></div>
           </div>
+        </div>
+        <!-- Sync tab -->
+        <div id="settings-tab-sync" class="d-none">
+          <div class="alert alert-info small mb-3">
+            <i class="fas fa-info-circle me-1"></i>
+            הפעל את שרת המחשב (port 3000) ובדוק שהטלפון מחובר לאותה WiFi. למצוא IP: פתח cmd ← הקלד <code>ipconfig</code> ← העתק "IPv4 Address".
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">כתובת שרת</label>
+            <input type="text" id="sync-server-url" class="form-control" placeholder="http://192.168.1.100:3000">
+            <div class="form-text">לדוגמה: http://192.168.1.50:3000</div>
+          </div>
+          <div class="d-flex gap-2 mb-3">
+            <button class="btn btn-primary flex-grow-1" onclick="syncPull()">
+              <i class="fas fa-download me-1"></i>ייבא מהמחשב
+            </button>
+            <button class="btn btn-success flex-grow-1" onclick="syncPush()">
+              <i class="fas fa-upload me-1"></i>ייצא למחשב
+            </button>
+          </div>
+          <div id="sync-status" class="small text-muted"></div>
         </div>
       </div>
       <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">סגור</button></div>

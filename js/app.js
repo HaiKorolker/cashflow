@@ -209,18 +209,71 @@ function renderPaymentSummary(containerId, byPayment) {
 
 // ─── SETTINGS MODAL ───────────────────────────────────────────────────────────
 
-function openSettingsModal(tab = 'categories') {
+async function openSettingsModal(tab = 'categories') {
   activateSettingsTab(tab);
   renderCategoriesList();
   renderPaymentMethodsList();
+  const savedUrl = await DB.getSetting('sync_server_url', '');
+  const urlInput = document.getElementById('sync-server-url');
+  if (urlInput && savedUrl) urlInput.value = savedUrl;
   bootstrap.Modal.getOrCreateInstance(document.getElementById('settingsModal')).show();
 }
 
 function activateSettingsTab(tab) {
   document.querySelectorAll('[data-settings-tab]').forEach(el => el.classList.toggle('active', el.dataset.settingsTab === tab));
-  ['categories','payments','data'].forEach(t => {
+  ['categories','payments','data','sync'].forEach(t => {
     document.getElementById(`settings-tab-${t}`).classList.toggle('d-none', t !== tab);
   });
+}
+
+// ─── SYNC ─────────────────────────────────────────────────────────────────────
+
+const SYNC_TOKEN = 'cashflow-sync';
+
+async function syncPull() {
+  const urlInput = document.getElementById('sync-server-url');
+  const url = urlInput?.value.trim().replace(/\/$/, '');
+  if (!url) { showToast('נא להזין כתובת שרת', 'error'); return; }
+  const status = document.getElementById('sync-status');
+  if (status) status.textContent = 'מייבא...';
+  try {
+    const res = await fetch(`${url}/api/sync/export`, { headers: { 'X-Sync-Token': SYNC_TOKEN } });
+    if (!res.ok) throw new Error(`שגיאת שרת ${res.status}`);
+    const data = await res.json();
+    await DB.importData(data);
+    await DB.setSetting('sync_server_url', url);
+    await loadSettings();
+    showSection(currentSection);
+    const msg = `יובאו ${data.expenses?.length || 0} הוצאות, ${data.income?.length || 0} הכנסות`;
+    showToast(msg);
+    if (status) status.textContent = `✓ ${msg} — ${new Date().toLocaleTimeString('he-IL')}`;
+  } catch (e) {
+    showToast('שגיאת ייבוא: ' + e.message, 'error');
+    if (status) status.textContent = '✗ ' + e.message;
+  }
+}
+
+async function syncPush() {
+  const urlInput = document.getElementById('sync-server-url');
+  const url = urlInput?.value.trim().replace(/\/$/, '');
+  if (!url) { showToast('נא להזין כתובת שרת', 'error'); return; }
+  const status = document.getElementById('sync-status');
+  if (status) status.textContent = 'שולח...';
+  try {
+    const data = await DB.exportData();
+    const res = await fetch(`${url}/api/sync/import`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Sync-Token': SYNC_TOKEN },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error(`שגיאת שרת ${res.status}`);
+    await DB.setSetting('sync_server_url', url);
+    showToast('הנתונים נשלחו למחשב בהצלחה');
+    if (status) status.textContent = `✓ נשלח — ${new Date().toLocaleTimeString('he-IL')}`;
+  } catch (e) {
+    showToast('שגיאת שליחה: ' + e.message, 'error');
+    if (status) status.textContent = '✗ ' + e.message;
+  }
 }
 
 function renderCategoriesList() {
