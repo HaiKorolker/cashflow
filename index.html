@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#6366f1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="מעקב הוצאות">
+  <title>מעקב הוצאות</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.svg">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-dark app-navbar px-3 d-flex justify-content-between align-items-center">
+  <span class="navbar-brand fw-bold fs-5 mb-0"><i class="fas fa-wallet me-2"></i>מעקב הוצאות</span>
+  <div class="d-flex align-items-center gap-2">
+    <span class="text-white-50 small d-none d-md-inline" id="navbar-date"></span>
+    <button class="navbar-settings-btn" onclick="openSettingsModal()" title="הגדרות">
+      <i class="fas fa-cog"></i>
+    </button>
+  </div>
+</nav>
+
+<!-- LAYOUT -->
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <nav class="app-sidebar d-none d-md-flex flex-column">
+    <div class="sidebar-nav">
+      <a href="#" class="sidebar-link active" data-section="monthly-summary">
+        <i class="fas fa-calendar-alt"></i><span>סיכום חודשי</span>
+      </a>
+      <a href="#" class="sidebar-link" data-section="expenses">
+        <i class="fas fa-receipt"></i><span>הוצאות</span>
+      </a>
+      <a href="#" class="sidebar-link" data-section="income">
+        <i class="fas fa-money-bill-wave"></i><span>הכנסות</span>
+      </a>
+      <a href="#" class="sidebar-link" data-section="standing-orders">
+        <i class="fas fa-repeat"></i><span>הוראות קבע</span>
+      </a>
+      <a href="#" class="sidebar-link" data-section="dashboard">
+        <i class="fas fa-chart-bar"></i><span>סיכום שנתי</span>
+      </a>
+      <a href="#" class="sidebar-link" data-section="savings">
+        <i class="fas fa-piggy-bank"></i><span>חיסכון והשקעות</span>
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <button class="sidebar-export-btn w-100" onclick="exportToExcel()">
+        <i class="fas fa-file-excel"></i><span>יצא לאקסל</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="app-main">
+
+    <!-- BOTTOM NAV (mobile) -->
+    <nav class="mobile-nav d-flex d-md-none">
+      <a href="#" class="mobile-nav-link active" data-section="monthly-summary"><i class="fas fa-calendar-alt"></i><small>חודשי</small></a>
+      <a href="#" class="mobile-nav-link" data-section="expenses"><i class="fas fa-receipt"></i><small>הוצאות</small></a>
+      <a href="#" class="mobile-nav-link" data-section="income"><i class="fas fa-money-bill-wave"></i><small>הכנסות</small></a>
+      <a href="#" class="mobile-nav-link" data-section="standing-orders"><i class="fas fa-repeat"></i><small>קבע</small></a>
+      <a href="#" class="mobile-nav-link" data-section="dashboard"><i class="fas fa-chart-bar"></i><small>שנתי</small></a>
+      <a href="#" class="mobile-nav-link" data-section="savings"><i class="fas fa-piggy-bank"></i><small>חיסכון</small></a>
+    </nav>
+
+    <!-- ===== SECTION: ANNUAL DASHBOARD ===== -->
+    <section id="section-dashboard" class="app-section">
+      <div class="section-header">
+        <h4 class="section-title">סיכום שנתי</h4>
+        <div class="d-flex align-items-center gap-2">
+          <label class="small text-muted mb-0">שנה:</label>
+          <input type="number" id="dashboard-year" class="form-control form-control-sm" style="width:100px" min="2020" max="2099">
+        </div>
+      </div>
+      <div class="row g-3 mb-3">
+        <div class="col-6 col-md-3"><div class="stat-card stat-card-red"><div class="stat-label">הוצאות השנה</div><div class="stat-value" id="annual-total-expenses">₪0</div></div></div>
+        <div class="col-6 col-md-3"><div class="stat-card stat-card-green"><div class="stat-label">הכנסות השנה</div><div class="stat-value" id="annual-total-income">₪0</div></div></div>
+        <div class="col-6 col-md-3"><div class="stat-card stat-card-blue"><div class="stat-label">יתרה שנתית</div><div class="stat-value" id="annual-net">₪0</div></div></div>
+        <div class="col-6 col-md-3"><div class="stat-card stat-card-orange"><div class="stat-label">הוראות קבע (שנתי)</div><div class="stat-value" id="annual-standing">₪0</div></div></div>
+      </div>
+      <div class="row g-3 mb-4">
+        <div class="col-md-7"><div class="card shadow-sm"><div class="card-header">הוצאות מול הכנסות - לפי חודש</div><div class="card-body chart-container-tall"><canvas id="chart-annual-monthly"></canvas></div></div></div>
+        <div class="col-md-5"><div class="card shadow-sm"><div class="card-header">הוצאות לפי קטגוריה - כל השנה</div><div class="card-body chart-container-tall"><canvas id="chart-annual-category"></canvas></div></div></div>
+      </div>
+      <div class="card shadow-sm mb-4"><div class="card-header">הוצאות לפי אמצעי תשלום - שנתי</div><div class="card-body"><div id="annual-payment-summary" class="row g-2"></div></div></div>
+      <div class="card shadow-sm mb-4"><div class="card-header">פירוט לפי חודשים</div><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover mb-0"><thead><tr><th>חודש</th><th class="text-end">הוצאות</th><th class="text-end">הכנסות</th><th class="text-end">הוראות קבע</th><th class="text-end">יתרה</th></tr></thead><tbody id="annual-months-table"></tbody></table></div></div></div>
+      <div class="card shadow-sm mb-4 insights-card"><div class="card-header"><span class="me-2">💡</span>תובנות והמלצות - שנתי</div><div class="card-body"><ul class="mb-0" id="annual-insights-list"></ul></div></div>
+    </section>
+
+    <!-- ===== SECTION: EXPENSES ===== -->
+    <section id="section-expenses" class="app-section">
+      <div class="section-header">
+        <h4 class="section-title">הוצאות</h4>
+        <button class="btn btn-primary btn-sm" onclick="openExpenseModal()">
+          <i class="fas fa-plus me-1"></i>הוסף הוצאה
+        </button>
+      </div>
+      <div class="card shadow-sm mb-3">
+        <div class="card-body py-2">
+          <div class="row g-2 align-items-center">
+            <div class="col-auto"><input type="month" id="expenses-month" class="form-control form-control-sm"></div>
+            <div class="col-auto"><select id="expenses-category-filter" class="form-select form-select-sm"><option value="">כל הקטגוריות</option></select></div>
+            <div class="col"><input type="text" id="expenses-search" class="form-control form-control-sm" placeholder="חיפוש..."></div>
+            <div class="col-auto"><button class="btn btn-outline-secondary btn-sm" onclick="loadExpenses()"><i class="fas fa-search"></i></button></div>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+        <span class="text-muted small">סה"כ תוצאות: <span id="expenses-count">0</span></span>
+        <span class="fw-bold">סה"כ: <span id="expenses-total-display">₪0</span></span>
+      </div>
+      <div class="card shadow-sm"><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover mb-0"><thead><tr><th>תאריך</th><th>קטגוריה</th><th>תיאור</th><th>סכום</th><th>תשלום</th><th>הערות</th><th>פעולות</th></tr></thead><tbody id="expenses-table-body"></tbody></table></div></div></div>
+    </section>
+
+    <!-- ===== SECTION: INCOME ===== -->
+    <section id="section-income" class="app-section">
+      <div class="section-header">
+        <h4 class="section-title">הכנסות</h4>
+        <button class="btn btn-success btn-sm" onclick="openIncomeModal()"><i class="fas fa-plus me-1"></i>הוסף הכנסה</button>
+      </div>
+      <div class="card shadow-sm mb-3"><div class="card-body py-2"><div class="row g-2 align-items-center"><div class="col-auto"><input type="month" id="income-month" class="form-control form-control-sm"></div><div class="col-auto"><button class="btn btn-outline-secondary btn-sm" onclick="loadIncome()"><i class="fas fa-search"></i></button></div></div></div></div>
+      <div class="d-flex justify-content-end mb-2 px-1"><span class="fw-bold">סה"כ: <span id="income-total-display">₪0</span></span></div>
+      <div class="card shadow-sm"><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover mb-0"><thead><tr><th>תאריך</th><th>מקור</th><th>סכום</th><th>אמצעי תשלום</th><th>הערות</th><th>פעולות</th></tr></thead><tbody id="income-table-body"></tbody></table></div></div></div>
+    </section>
+
+    <!-- ===== SECTION: STANDING ORDERS ===== -->
+    <section id="section-standing-orders" class="app-section">
+      <div class="section-header">
+        <h4 class="section-title">הוראות קבע</h4>
+        <button class="btn btn-primary btn-sm" onclick="openStandingModal()"><i class="fas fa-plus me-1"></i>הוסף הוראת קבע</button>
+      </div>
+      <div class="alert alert-info d-flex align-items-center mb-3"><i class="fas fa-info-circle me-2"></i><span>סה"כ הוראות קבע פעילות: <strong id="standing-total-display">₪0</strong></span></div>
+      <div class="row g-3" id="standing-orders-container"></div>
+    </section>
+
+    <!-- ===== SECTION: MONTHLY SUMMARY ===== -->
+    <section id="section-monthly-summary" class="app-section">
+      <div class="section-header">
+        <h4 class="section-title">סיכום חודשי</h4>
+        <div class="d-flex align-items-center gap-2">
+          <label class="small text-muted mb-0">חודש:</label>
+          <input type="month" id="summary-month" class="form-control form-control-sm" style="width:160px">
+        </div>
+      </div>
+      <div class="row g-3 mb-3">
+        <div class="col-md-4"><div class="stat-card stat-card-green"><div class="stat-label">הכנסות החודש</div><div class="stat-value" id="summary-income-card">₪0</div></div></div>
+        <div class="col-md-4"><div class="stat-card stat-card-red"><div class="stat-label">הוצאות החודש</div><div class="stat-value" id="summary-expenses-card">₪0</div><div class="small mt-1" style="opacity:0.75" id="summary-expenses-sub"></div></div></div>
+        <div class="col-md-4"><div class="stat-card stat-card-blue"><div class="stat-label">יתרה חודשית</div><div class="stat-value" id="summary-balance-card">₪0</div></div></div>
+      </div>
+      <hr class="my-4">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center" style="cursor:pointer" data-bs-toggle="collapse" data-bs-target="#monthly-expenses-collapse" aria-expanded="false">
+          <span class="fw-semibold"><i class="fas fa-chevron-left me-2 collapse-chevron"></i>הוצאות החודש</span>
+          <div class="d-flex align-items-center gap-2">
+            <span id="monthly-expenses-badge" class="text-danger fw-bold">₪0</span>
+            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openExpenseModal()"><i class="fas fa-plus"></i></button>
+          </div>
+        </div>
+        <div id="monthly-expenses-collapse" class="collapse">
+          <div class="card-body border-bottom py-2 d-flex align-items-center gap-2">
+            <label class="small text-muted mb-0">סינון לפי קטגוריה:</label>
+            <select id="monthly-expenses-category-filter" class="form-select form-select-sm" style="width:auto; min-width:160px" onclick="event.stopPropagation()"><option value="">כל הקטגוריות</option></select>
+          </div>
+          <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover table-sm mb-0"><thead><tr><th>תאריך</th><th>קטגוריה</th><th>תיאור</th><th class="text-end">סכום</th><th>תשלום</th><th>פעולות</th></tr></thead><tbody id="monthly-expenses-table-body"></tbody></table></div>
+            <div class="px-3 py-2 d-flex justify-content-between border-top bg-light"><span class="text-muted small"><span id="monthly-expenses-count">0</span> פריטים</span><span class="fw-bold" id="monthly-expenses-total">₪0</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center" style="cursor:pointer" data-bs-toggle="collapse" data-bs-target="#monthly-income-collapse" aria-expanded="false">
+          <span class="fw-semibold"><i class="fas fa-chevron-left me-2 collapse-chevron"></i>הכנסות החודש</span>
+          <div class="d-flex align-items-center gap-2">
+            <span id="monthly-income-badge" class="text-success fw-bold">₪0</span>
+            <button class="btn btn-success btn-sm" onclick="event.stopPropagation(); openIncomeModal()"><i class="fas fa-plus"></i></button>
+          </div>
+        </div>
+        <div id="monthly-income-collapse" class="collapse"><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover table-sm mb-0"><thead><tr><th>תאריך</th><th>מקור</th><th class="text-end">סכום</th><th>הערות</th><th>פעולות</th></tr></thead><tbody id="monthly-income-table-body"></tbody></table></div></div></div>
+      </div>
+      <div class="row g-3 mb-4" id="summary-category-cards"></div>
+      <div class="row g-3 mb-4">
+        <div class="col-md-6"><div class="card shadow-sm"><div class="card-header">הוצאות לפי קטגוריה - החודש</div><div class="card-body chart-container-tall"><canvas id="chart-monthly-category"></canvas></div></div></div>
+        <div class="col-md-6"><div class="card shadow-sm"><div class="card-header">גרף 6 חודשים אחרונים</div><div class="card-body chart-container-tall"><canvas id="chart-monthly-summary"></canvas></div></div></div>
+      </div>
+      <div class="card shadow-sm mb-4"><div class="card-header">הוצאות לפי אמצעי תשלום - החודש</div><div class="card-body"><div id="monthly-payment-summary" class="row g-2"></div></div></div>
+      <div class="card shadow-sm mb-4"><div class="card-header">השוואה לפי קטגוריה - 3 חודשים אחרונים</div><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover mb-0"><thead id="summary-comparison-head"></thead><tbody id="summary-comparison-body"></tbody></table></div></div></div>
+      <div class="card shadow-sm mb-4 insights-card"><div class="card-header"><span class="me-2">💡</span>תובנות והמלצות - חודשי</div><div class="card-body"><ul class="mb-0" id="monthly-insights-list"></ul></div></div>
+    </section>
+
+    <!-- ===== SECTION: SAVINGS ===== -->
+    <section id="section-savings" class="app-section">
+      <div class="section-header"><h4 class="section-title">חיסכון והשקעות</h4></div>
+      <ul class="nav nav-pills mb-4" id="savings-tabs">
+        <li class="nav-item"><a class="nav-link active" href="#" data-savings-tab="investments">חשבונות השקעה</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" data-savings-tab="loans">הלוואות שנתתי</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" data-savings-tab="add">הוסף חשבון / הלוואה</a></li>
+      </ul>
+      <div id="savings-tab-investments">
+        <div class="mb-3"><button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addInvestmentModal"><i class="fas fa-plus me-1"></i>הוסף חשבון</button></div>
+        <div class="row g-3 mb-4" id="investments-summary-cards"></div>
+        <div class="accordion" id="investments-accordion"></div>
+      </div>
+      <div id="savings-tab-loans" class="d-none">
+        <div class="mb-3"><button class="btn btn-success btn-sm" onclick="openLoanModal()"><i class="fas fa-plus me-1"></i>הוסף הלוואה</button></div>
+        <div id="loans-container"></div>
+      </div>
+      <div id="savings-tab-add" class="d-none">
+        <div class="row g-4">
+          <div class="col-md-6"><div class="card shadow-sm"><div class="card-header">הוסף חשבון השקעה</div><div class="card-body">
+            <div class="mb-3"><label class="form-label">שם החשבון</label><input type="text" id="new-inv-name" class="form-control" placeholder="למשל: אקסלנס"></div>
+            <div class="mb-3"><label class="form-label">סוג</label><select id="new-inv-type" class="form-select"><option>חשבון השקעות</option><option>קופת גמל להשקעה</option><option>קרן השתלמות</option><option>פנסיה</option><option>אחר</option></select></div>
+            <button class="btn btn-primary" onclick="addInvestment()">הוסף חשבון</button>
+          </div></div></div>
+          <div class="col-md-6"><div class="card shadow-sm"><div class="card-header">הוסף הלוואה שנתתי</div><div class="card-body">
+            <div class="mb-3"><label class="form-label">שם האדם</label><input type="text" id="new-loan-person" class="form-control"></div>
+            <div class="mb-3"><label class="form-label">סכום שניתן</label><input type="number" id="new-loan-amount" class="form-control"></div>
+            <div class="mb-3"><label class="form-label">תאריך</label><input type="date" id="new-loan-date" class="form-control"></div>
+            <div class="mb-3"><label class="form-label">הערות</label><textarea id="new-loan-notes" class="form-control" rows="2"></textarea></div>
+            <button class="btn btn-success" onclick="addLoan()">הוסף הלוואה</button>
+          </div></div></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Settings Modal -->
+<div class="modal fade" id="settingsModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-cog me-2"></i>הגדרות</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <ul class="nav nav-tabs mb-3" id="settings-nav-tabs">
+          <li class="nav-item"><a class="nav-link active" href="#" data-settings-tab="categories"><i class="fas fa-tags me-1"></i>קטגוריות</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-settings-tab="payments"><i class="fas fa-credit-card me-1"></i>אמצעי תשלום</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-settings-tab="data"><i class="fas fa-database me-1"></i>גיבוי ושחזור</a></li>
+        </ul>
+        <!-- Categories tab -->
+        <div id="settings-tab-categories">
+          <div class="d-flex gap-2 mb-3">
+            <input type="text" id="new-category-name" class="form-control" placeholder="שם קטגוריה חדשה">
+            <button class="btn btn-primary" onclick="addCategory()"><i class="fas fa-plus"></i> הוסף</button>
+          </div>
+          <div id="categories-list"></div>
+        </div>
+        <!-- Payment methods tab -->
+        <div id="settings-tab-payments" class="d-none">
+          <div class="d-flex gap-2 mb-3">
+            <input type="text" id="new-payment-name" class="form-control" placeholder="שם אמצעי תשלום חדש">
+            <button class="btn btn-primary" onclick="addPaymentMethod()"><i class="fas fa-plus"></i> הוסף</button>
+          </div>
+          <div id="payments-list"></div>
+        </div>
+        <!-- Data backup tab -->
+        <div id="settings-tab-data" class="d-none">
+          <div class="row g-3">
+            <div class="col-12"><div class="card"><div class="card-body">
+              <h6 class="fw-bold mb-1">ייצא נתונים</h6>
+              <p class="text-muted small mb-3">הורד את כל הנתונים שלך לגיבוי.</p>
+              <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-outline-primary" onclick="exportDataJSON()"><i class="fas fa-download me-2"></i>גיבוי JSON</button>
+                <button class="btn btn-outline-success" onclick="exportToExcel()"><i class="fas fa-file-excel me-2"></i>יצא לאקסל</button>
+              </div>
+            </div></div></div>
+            <div class="col-12"><div class="card"><div class="card-body">
+              <h6 class="fw-bold mb-1">ייבא נתונים (שחזור)</h6>
+              <p class="text-muted small mb-2">שחזר נתונים מקובץ גיבוי JSON. הנתונים יתווספו לקיימים.</p>
+              <input type="file" id="import-file" accept=".json" class="form-control mb-2">
+              <button class="btn btn-outline-warning" onclick="importDataJSON()"><i class="fas fa-upload me-2"></i>ייבא נתונים</button>
+            </div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">סגור</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Investment Modal -->
+<div class="modal fade" id="addInvestmentModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">הוספת חשבון השקעה</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-3"><label class="form-label">שם החשבון <span class="text-danger">*</span></label><input type="text" id="modal-inv-name" class="form-control" placeholder="למשל: אקסלנס"></div>
+      <div class="mb-3"><label class="form-label">סוג</label><select id="modal-inv-type" class="form-select"><option>חשבון השקעות</option><option>קופת גמל להשקעה</option><option>קרן השתלמות</option><option>פנסיה</option><option>אחר</option></select></div>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button><button type="button" class="btn btn-primary" onclick="addInvestmentFromModal()">הוסף חשבון</button></div>
+  </div></div>
+</div>
+
+<!-- Add Loan Modal -->
+<div class="modal fade" id="addLoanModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">הוספת הלוואה שנתתי</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-3"><label class="form-label">שם האדם <span class="text-danger">*</span></label><input type="text" id="modal-loan-person" class="form-control"></div>
+      <div class="mb-3"><label class="form-label">סכום שניתן <span class="text-danger">*</span></label><input type="number" id="modal-loan-amount" class="form-control"></div>
+      <div class="mb-3"><label class="form-label">תאריך</label><input type="date" id="modal-loan-date" class="form-control"></div>
+      <div class="mb-3"><label class="form-label">הערות</label><textarea id="modal-loan-notes" class="form-control" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button><button type="button" class="btn btn-success" onclick="addLoanFromModal()">הוסף הלוואה</button></div>
+  </div></div>
+</div>
+
+<!-- Expense Modal -->
+<div class="modal fade" id="expenseModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="expenseModalTitle">הוספת הוצאה</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="expense-edit-id">
+      <div class="mb-3"><label class="form-label">תאריך <span class="text-danger">*</span></label><input type="date" id="expense-date" class="form-control" required></div>
+      <div class="mb-3">
+        <label class="form-label">קטגוריה <span class="text-danger">*</span></label>
+        <div class="d-flex gap-2">
+          <select id="expense-category" class="form-select" required></select>
+          <button type="button" class="btn btn-outline-primary" onclick="quickAddCategory()" title="הוסף קטגוריה חדשה" style="white-space:nowrap">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+      </div>
+      <div class="mb-3"><label class="form-label">תיאור <span class="text-danger">*</span></label><input type="text" id="expense-description" class="form-control" required></div>
+      <div class="mb-3"><label class="form-label">סכום (₪) <span class="text-danger">*</span></label><input type="number" id="expense-amount" class="form-control" step="0.01" min="0" required></div>
+      <div class="mb-3"><label class="form-label">אמצעי תשלום</label><select id="expense-payment" class="form-select"></select></div>
+      <div class="mb-3"><label class="form-label">הערות</label><textarea id="expense-notes" class="form-control" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button><button type="button" class="btn btn-primary" onclick="saveExpense()">שמור</button></div>
+  </div></div>
+</div>
+
+<!-- Income Modal -->
+<div class="modal fade" id="incomeModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="incomeModalTitle">הוספת הכנסה</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="income-edit-id">
+      <div class="mb-3"><label class="form-label">תאריך <span class="text-danger">*</span></label><input type="date" id="income-date" class="form-control" required></div>
+      <div class="mb-3"><label class="form-label">מקור <span class="text-danger">*</span></label><input type="text" id="income-source" class="form-control" required></div>
+      <div class="mb-3"><label class="form-label">סכום (₪) <span class="text-danger">*</span></label><input type="number" id="income-amount" class="form-control" step="0.01" min="0" required></div>
+      <div class="mb-3"><label class="form-label">אמצעי תשלום</label><select id="income-payment" class="form-select"></select></div>
+      <div class="mb-3"><label class="form-label">הערות</label><textarea id="income-notes" class="form-control" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button><button type="button" class="btn btn-success" onclick="saveIncome()">שמור</button></div>
+  </div></div>
+</div>
+
+<!-- Standing Order Modal -->
+<div class="modal fade" id="standingModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="standingModalTitle">הוספת הוראת קבע</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="standing-edit-id">
+      <div class="mb-3"><label class="form-label">שם <span class="text-danger">*</span></label><input type="text" id="standing-name" class="form-control" required></div>
+      <div class="mb-3"><label class="form-label">קטגוריה</label><select id="standing-category" class="form-select"></select></div>
+      <div class="mb-3"><label class="form-label">סכום חודשי (₪) <span class="text-danger">*</span></label><input type="number" id="standing-amount" class="form-control" step="0.01" min="0" required></div>
+      <div class="mb-3"><label class="form-label">אמצעי תשלום</label><select id="standing-payment" class="form-select"></select></div>
+      <div class="mb-3"><label class="form-label">הערות</label><textarea id="standing-notes" class="form-control" rows="2"></textarea></div>
+      <div class="form-check"><input type="checkbox" id="standing-active" class="form-check-input" checked><label class="form-check-label" for="standing-active">פעיל</label></div>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button><button type="button" class="btn btn-primary" onclick="saveStandingOrder()">שמור</button></div>
+  </div></div>
+</div>
+
+<!-- Deposit Modal -->
+<div class="modal fade" id="depositModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">הוספת הפקדה</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="deposit-inv-id">
+      <div class="mb-3"><label class="form-label">תאריך (YYYY-MM)</label><input type="month" id="deposit-date" class="form-control"></div>
+      <div class="mb-3"><label class="form-label">סכום (₪)</label><input type="number" id="deposit-amount" class="form-control" step="0.01" min="0"></div>
+      <div class="mb-3"><label class="form-label">הערות</label><textarea id="deposit-notes" class="form-control" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button><button type="button" class="btn btn-primary" onclick="saveDeposit()">שמור</button></div>
+  </div></div>
+</div>
+
+<!-- Yearly Record Modal -->
+<div class="modal fade" id="yearlyModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">הוספת / עדכון נתון שנתי</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="yearly-inv-id">
+      <div class="mb-3"><label class="form-label">שנה</label><input type="number" id="yearly-year" class="form-control" placeholder="2024"></div>
+      <div class="mb-3"><label class="form-label">סך הפקדות בשנה (₪)</label><input type="number" id="yearly-deposited" class="form-control" step="0.01"></div>
+      <div class="mb-3"><label class="form-label">יתרה בסוף שנה (₪)</label><input type="number" id="yearly-balance" class="form-control" step="0.01"></div>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button><button type="button" class="btn btn-primary" onclick="saveYearly()">שמור</button></div>
+  </div></div>
+</div>
+
+<!-- Loan Payment Modal -->
+<div class="modal fade" id="loanPaymentModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">הוספת תשלום</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="loan-payment-loan-id">
+      <div class="mb-3"><label class="form-label">תאריך</label><input type="date" id="loan-payment-date" class="form-control"></div>
+      <div class="mb-3"><label class="form-label">סכום (₪)</label><input type="number" id="loan-payment-amount" class="form-control" step="0.01" min="0"></div>
+      <div class="mb-3"><label class="form-label">הערות</label><textarea id="loan-payment-notes" class="form-control" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button><button type="button" class="btn btn-success" onclick="saveLoanPayment()">שמור</button></div>
+  </div></div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999">
+  <div id="app-toast" class="toast align-items-center text-white border-0" role="alert">
+    <div class="d-flex"><div class="toast-body" id="app-toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>
+  </div>
+</div>
+
+<!-- Confirm Delete Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+  <div class="modal-dialog modal-sm"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">אישור מחיקה</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><p id="confirm-message">האם למחוק?</p></div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button><button type="button" class="btn btn-danger" id="confirm-ok-btn">מחק</button></div>
+  </div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
