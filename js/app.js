@@ -112,6 +112,7 @@ function populateSelects() {
 
 function showSection(name) {
   currentSection = name;
+  closeDrawer();
   document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
   const sec = document.getElementById(`section-${name}`);
   if (sec) sec.classList.add('active');
@@ -122,6 +123,18 @@ function showSection(name) {
   else if (name === 'standing-orders') loadStandingOrders();
   else if (name === 'monthly-summary') loadMonthlySummary();
   else if (name === 'savings') loadSavings();
+}
+
+function toggleDrawer() {
+  const drawer = document.getElementById('app-drawer');
+  const overlay = document.getElementById('drawer-overlay');
+  const isOpen = drawer.classList.contains('open');
+  if (isOpen) { closeDrawer(); } else { drawer.classList.add('open'); overlay.classList.add('open'); }
+}
+
+function closeDrawer() {
+  document.getElementById('app-drawer')?.classList.remove('open');
+  document.getElementById('drawer-overlay')?.classList.remove('open');
 }
 
 // ─── FORMATTING ───────────────────────────────────────────────────────────────
@@ -476,8 +489,8 @@ function renderExpensesTable(expenses) {
       <td><span class="badge cat-badge" style="background:${categoryColor(e.category)}">${e.category}</span></td>
       <td>${e.description || ''}</td>
       <td class="fw-bold">${formatMoney(e.amount)}</td>
-      <td class="d-none d-md-table-cell"><small>${e.payment_method || ''}</small></td>
-      <td class="d-none d-md-table-cell"><small class="text-muted">${e.notes || ''}</small></td>
+      <td><small>${e.payment_method || ''}</small></td>
+      <td><small class="text-muted">${e.notes || ''}</small></td>
       <td>
         <button class="btn btn-sm btn-outline-primary me-1" onclick="openExpenseModal('${e.id}')"><i class="fas fa-edit"></i></button>
         <button class="btn btn-sm btn-outline-danger" onclick="deleteExpense('${e.id}','${(e.description||'').replace(/'/g,'')}')"><i class="fas fa-trash"></i></button>
@@ -553,8 +566,8 @@ function renderIncomeTable(income) {
     <tr>
       <td>${formatDate(i.date)}</td><td class="fw-semibold">${i.source || ''}</td>
       <td class="fw-bold text-success">${formatMoney(i.amount)}</td>
-      <td class="d-none d-md-table-cell"><small>${i.payment_method || ''}</small></td>
-      <td class="d-none d-md-table-cell"><small class="text-muted">${i.notes || ''}</small></td>
+      <td><small>${i.payment_method || ''}</small></td>
+      <td><small class="text-muted">${i.notes || ''}</small></td>
       <td>
         <button class="btn btn-sm btn-outline-primary me-1" onclick="openIncomeModal('${i.id}')"><i class="fas fa-edit"></i></button>
         <button class="btn btn-sm btn-outline-danger" onclick="deleteIncome('${i.id}','${(i.source||'').replace(/'/g,'')}')"><i class="fas fa-trash"></i></button>
@@ -755,7 +768,7 @@ function renderMonthlyExpensesTable(expenses) {
       <td><span class="badge cat-badge" style="background:${categoryColor(e.category)}">${e.category}</span></td>
       <td>${e.description || ''}</td>
       <td class="text-end fw-bold">${formatMoney(e.amount)}</td>
-      <td class="d-none d-md-table-cell"><small>${e.payment_method || ''}</small></td>
+      <td><small>${e.payment_method || ''}</small></td>
       <td>
         <button class="btn btn-sm btn-outline-primary me-1" onclick="openExpenseModal('${e.id}')"><i class="fas fa-edit"></i></button>
         <button class="btn btn-sm btn-outline-danger" onclick="deleteExpense('${e.id}','${(e.description||'').replace(/'/g,'')}')"><i class="fas fa-trash"></i></button>
@@ -777,7 +790,7 @@ function renderMonthlyIncomeTable(income) {
     <tr>
       <td>${formatDate(i.date)}</td><td class="fw-semibold">${i.source || ''}</td>
       <td class="text-end fw-bold text-success">${formatMoney(i.amount)}</td>
-      <td class="d-none d-md-table-cell"><small class="text-muted">${i.notes || ''}</small></td>
+      <td><small class="text-muted">${i.notes || ''}</small></td>
       <td>
         <button class="btn btn-sm btn-outline-primary me-1" onclick="openIncomeModal('${i.id}')"><i class="fas fa-edit"></i></button>
         <button class="btn btn-sm btn-outline-danger" onclick="deleteIncome('${i.id}','${(i.source||'').replace(/'/g,'')}')"><i class="fas fa-trash"></i></button>
