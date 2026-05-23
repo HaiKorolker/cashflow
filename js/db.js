@@ -457,11 +457,12 @@ const DB = (() => {
   }
 
   async function importData(data) {
-    if (data.expenses) for (const e of data.expenses) await putRecord('expenses', e);
-    if (data.income) for (const i of data.income) await putRecord('income', i);
-    if (data.standing_orders) for (const o of data.standing_orders) await putRecord('standing_orders', o);
-    if (data.savings) await _saveSavings(data.savings);
-    if (data.categories) await setSetting('categories', data.categories);
+    // החלפה מלאה — המקור תמיד סמכותי (עובד גם בקוד ישן וגם חדש)
+    if (data.expenses)        { await clearStore('expenses');        for (const e of data.expenses)        await putRecord('expenses', e); }
+    if (data.income)          { await clearStore('income');          for (const i of data.income)          await putRecord('income', i); }
+    if (data.standing_orders) { await clearStore('standing_orders'); for (const o of data.standing_orders) await putRecord('standing_orders', o); }
+    if (data.savings)         await _saveSavings(data.savings);
+    if (data.categories)      await setSetting('categories', data.categories);
     if (data.payment_methods) await setSetting('payment_methods', data.payment_methods);
   }
 
