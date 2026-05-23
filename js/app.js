@@ -480,9 +480,14 @@ async function loadExpenses() {
 
 function renderExpensesTable(expenses) {
   const tbody = document.getElementById('expenses-table-body');
+  const cards = document.getElementById('expenses-cards');
   document.getElementById('expenses-count').textContent = expenses.length;
   document.getElementById('expenses-total-display').textContent = formatMoney(expenses.reduce((s, e) => s + e.amount, 0));
-  if (expenses.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">אין הוצאות לתצוגה</td></tr>'; return; }
+  if (expenses.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">אין הוצאות לתצוגה</td></tr>';
+    if (cards) cards.innerHTML = '<p class="text-center text-muted py-4">אין הוצאות לתצוגה</p>';
+    return;
+  }
   tbody.innerHTML = expenses.map(e => `
     <tr>
       <td>${formatDate(e.date)}</td>
@@ -496,6 +501,24 @@ function renderExpensesTable(expenses) {
         <button class="btn btn-sm btn-outline-danger" onclick="deleteExpense('${e.id}','${(e.description||'').replace(/'/g,'')}')"><i class="fas fa-trash"></i></button>
       </td>
     </tr>`).join('');
+  if (cards) cards.innerHTML = expenses.map(e => `
+    <div class="mobile-card">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="badge cat-badge" style="background:${categoryColor(e.category)}">${e.category}</span>
+        <span class="text-muted mobile-card-meta">${formatDate(e.date)}</span>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="fw-semibold">${e.description || ''}</span>
+        <span class="fw-bold text-danger card-amount">${formatMoney(e.amount)}</span>
+      </div>
+      <div class="d-flex justify-content-between align-items-center">
+        <small class="text-muted">${[e.payment_method, e.notes].filter(Boolean).join(' · ')}</small>
+        <div>
+          <button class="btn btn-xs btn-outline-primary me-1" onclick="openExpenseModal('${e.id}')"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-xs btn-outline-danger" onclick="deleteExpense('${e.id}','${(e.description||'').replace(/'/g,'')}')"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+    </div>`).join('');
 }
 
 async function openExpenseModal(id) {
@@ -560,8 +583,13 @@ async function loadIncome() {
 
 function renderIncomeTable(income) {
   const tbody = document.getElementById('income-table-body');
+  const cards = document.getElementById('income-cards');
   document.getElementById('income-total-display').textContent = formatMoney(income.reduce((s, i) => s + i.amount, 0));
-  if (income.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">אין הכנסות לתצוגה</td></tr>'; return; }
+  if (income.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">אין הכנסות לתצוגה</td></tr>';
+    if (cards) cards.innerHTML = '<p class="text-center text-muted py-4">אין הכנסות לתצוגה</p>';
+    return;
+  }
   tbody.innerHTML = income.map(i => `
     <tr>
       <td>${formatDate(i.date)}</td><td class="fw-semibold">${i.source || ''}</td>
@@ -573,6 +601,21 @@ function renderIncomeTable(income) {
         <button class="btn btn-sm btn-outline-danger" onclick="deleteIncome('${i.id}','${(i.source||'').replace(/'/g,'')}')"><i class="fas fa-trash"></i></button>
       </td>
     </tr>`).join('');
+  if (cards) cards.innerHTML = income.map(i => `
+    <div class="mobile-card">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="fw-semibold">${i.source || ''}</span>
+        <span class="text-muted mobile-card-meta">${formatDate(i.date)}</span>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <small class="text-muted">${[i.payment_method, i.notes].filter(Boolean).join(' · ')}</small>
+        <span class="fw-bold text-success card-amount">${formatMoney(i.amount)}</span>
+      </div>
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-xs btn-outline-primary me-1" onclick="openIncomeModal('${i.id}')"><i class="fas fa-edit"></i></button>
+        <button class="btn btn-xs btn-outline-danger" onclick="deleteIncome('${i.id}','${(i.source||'').replace(/'/g,'')}')"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>`).join('');
 }
 
 async function openIncomeModal(id) {
@@ -757,11 +800,16 @@ async function loadMonthlyExpensesList(month) {
 
 function renderMonthlyExpensesTable(expenses) {
   const tbody = document.getElementById('monthly-expenses-table-body');
+  const cards = document.getElementById('monthly-expenses-cards');
   const total = expenses.reduce((s, e) => s + e.amount, 0);
   document.getElementById('monthly-expenses-count').textContent = expenses.length;
   document.getElementById('monthly-expenses-total').textContent = formatMoney(total);
   document.getElementById('monthly-expenses-badge').textContent = `${formatMoney(total)} | ${expenses.length} פריטים`;
-  if (expenses.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">אין הוצאות</td></tr>'; return; }
+  if (expenses.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">אין הוצאות</td></tr>';
+    if (cards) cards.innerHTML = '<p class="text-center text-muted py-3">אין הוצאות</p>';
+    return;
+  }
   tbody.innerHTML = expenses.map(e => `
     <tr>
       <td>${formatDate(e.date)}</td>
@@ -774,6 +822,24 @@ function renderMonthlyExpensesTable(expenses) {
         <button class="btn btn-sm btn-outline-danger" onclick="deleteExpense('${e.id}','${(e.description||'').replace(/'/g,'')}')"><i class="fas fa-trash"></i></button>
       </td>
     </tr>`).join('');
+  if (cards) cards.innerHTML = expenses.map(e => `
+    <div class="mobile-card">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="badge cat-badge" style="background:${categoryColor(e.category)}">${e.category}</span>
+        <span class="text-muted mobile-card-meta">${formatDate(e.date)}</span>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="fw-semibold">${e.description || ''}</span>
+        <span class="fw-bold text-danger card-amount">${formatMoney(e.amount)}</span>
+      </div>
+      <div class="d-flex justify-content-between align-items-center">
+        <small class="text-muted">${e.payment_method || ''}</small>
+        <div>
+          <button class="btn btn-xs btn-outline-primary me-1" onclick="openExpenseModal('${e.id}')"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-xs btn-outline-danger" onclick="deleteExpense('${e.id}','${(e.description||'').replace(/'/g,'')}')"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+    </div>`).join('');
 }
 
 async function loadMonthlyIncomeList(month) {
@@ -783,9 +849,14 @@ async function loadMonthlyIncomeList(month) {
 
 function renderMonthlyIncomeTable(income) {
   const tbody = document.getElementById('monthly-income-table-body');
+  const cards = document.getElementById('monthly-income-cards');
   const total = income.reduce((s, i) => s + i.amount, 0);
   document.getElementById('monthly-income-badge').textContent = formatMoney(total);
-  if (income.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">אין הכנסות</td></tr>'; return; }
+  if (income.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">אין הכנסות</td></tr>';
+    if (cards) cards.innerHTML = '<p class="text-center text-muted py-3">אין הכנסות</p>';
+    return;
+  }
   tbody.innerHTML = income.map(i => `
     <tr>
       <td>${formatDate(i.date)}</td><td class="fw-semibold">${i.source || ''}</td>
@@ -796,6 +867,21 @@ function renderMonthlyIncomeTable(income) {
         <button class="btn btn-sm btn-outline-danger" onclick="deleteIncome('${i.id}','${(i.source||'').replace(/'/g,'')}')"><i class="fas fa-trash"></i></button>
       </td>
     </tr>`).join('');
+  if (cards) cards.innerHTML = income.map(i => `
+    <div class="mobile-card">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="fw-semibold">${i.source || ''}</span>
+        <span class="text-muted mobile-card-meta">${formatDate(i.date)}</span>
+      </div>
+      <div class="d-flex justify-content-between align-items-center">
+        <small class="text-muted">${i.notes || ''}</small>
+        <div class="d-flex align-items-center gap-2">
+          <span class="fw-bold text-success card-amount">${formatMoney(i.amount)}</span>
+          <button class="btn btn-xs btn-outline-primary" onclick="openIncomeModal('${i.id}')"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-xs btn-outline-danger" onclick="deleteIncome('${i.id}','${(i.source||'').replace(/'/g,'')}')"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+    </div>`).join('');
 }
 
 function renderMonthlyCategoryChart(byCategory) {

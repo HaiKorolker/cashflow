@@ -149,7 +149,12 @@
         <span class="text-muted small">סה"כ תוצאות: <span id="expenses-count">0</span></span>
         <span class="fw-bold">סה"כ: <span id="expenses-total-display">₪0</span></span>
       </div>
-      <div class="card shadow-sm"><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover mb-0"><thead><tr><th>תאריך</th><th>קטגוריה</th><th>תיאור</th><th>סכום</th><th>תשלום</th><th>הערות</th><th>פעולות</th></tr></thead><tbody id="expenses-table-body"></tbody></table></div></div></div>
+      <div class="card shadow-sm">
+        <div class="card-body p-0">
+          <div class="d-none d-md-block table-responsive"><table class="table table-hover mb-0"><thead><tr><th>תאריך</th><th>קטגוריה</th><th>תיאור</th><th>סכום</th><th>תשלום</th><th>הערות</th><th>פעולות</th></tr></thead><tbody id="expenses-table-body"></tbody></table></div>
+          <div id="expenses-cards" class="d-md-none"></div>
+        </div>
+      </div>
     </section>
 
     <!-- ===== SECTION: INCOME ===== -->
@@ -160,7 +165,12 @@
       </div>
       <div class="card shadow-sm mb-3"><div class="card-body py-2"><div class="row g-2 align-items-center"><div class="col-auto"><input type="month" id="income-month" class="form-control form-control-sm"></div><div class="col-auto"><button class="btn btn-outline-secondary btn-sm" onclick="loadIncome()"><i class="fas fa-search"></i></button></div></div></div></div>
       <div class="d-flex justify-content-end mb-2 px-1"><span class="fw-bold">סה"כ: <span id="income-total-display">₪0</span></span></div>
-      <div class="card shadow-sm"><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover mb-0"><thead><tr><th>תאריך</th><th>מקור</th><th>סכום</th><th>אמצעי תשלום</th><th>הערות</th><th>פעולות</th></tr></thead><tbody id="income-table-body"></tbody></table></div></div></div>
+      <div class="card shadow-sm">
+        <div class="card-body p-0">
+          <div class="d-none d-md-block table-responsive"><table class="table table-hover mb-0"><thead><tr><th>תאריך</th><th>מקור</th><th>סכום</th><th>אמצעי תשלום</th><th>הערות</th><th>פעולות</th></tr></thead><tbody id="income-table-body"></tbody></table></div>
+          <div id="income-cards" class="d-md-none"></div>
+        </div>
+      </div>
     </section>
 
     <!-- ===== SECTION: STANDING ORDERS ===== -->
@@ -201,7 +211,9 @@
             <label class="small text-muted mb-0">סינון לפי קטגוריה:</label>
             <select id="monthly-expenses-category-filter" class="form-select form-select-sm" style="width:auto; min-width:160px" onclick="event.stopPropagation()"><option value="">כל הקטגוריות</option></select>
           </div>
-          <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover table-sm mb-0"><thead><tr><th>תאריך</th><th>קטגוריה</th><th>תיאור</th><th class="text-end">סכום</th><th>תשלום</th><th>פעולות</th></tr></thead><tbody id="monthly-expenses-table-body"></tbody></table></div>
+          <div class="card-body p-0">
+            <div class="d-none d-md-block table-responsive"><table class="table table-hover table-sm mb-0"><thead><tr><th>תאריך</th><th>קטגוריה</th><th>תיאור</th><th class="text-end">סכום</th><th>תשלום</th><th>פעולות</th></tr></thead><tbody id="monthly-expenses-table-body"></tbody></table></div>
+            <div id="monthly-expenses-cards" class="d-md-none"></div>
             <div class="px-3 py-2 d-flex justify-content-between border-top bg-light"><span class="text-muted small"><span id="monthly-expenses-count">0</span> פריטים</span><span class="fw-bold" id="monthly-expenses-total">₪0</span></div>
           </div>
         </div>
@@ -214,7 +226,12 @@
             <button class="btn btn-success btn-sm" onclick="event.stopPropagation(); openIncomeModal()"><i class="fas fa-plus"></i></button>
           </div>
         </div>
-        <div id="monthly-income-collapse" class="collapse"><div class="card-body p-0"><div class="table-responsive"><table class="table table-hover table-sm mb-0"><thead><tr><th>תאריך</th><th>מקור</th><th class="text-end">סכום</th><th>הערות</th><th>פעולות</th></tr></thead><tbody id="monthly-income-table-body"></tbody></table></div></div></div>
+        <div id="monthly-income-collapse" class="collapse">
+          <div class="card-body p-0">
+            <div class="d-none d-md-block table-responsive"><table class="table table-hover table-sm mb-0"><thead><tr><th>תאריך</th><th>מקור</th><th class="text-end">סכום</th><th>הערות</th><th>פעולות</th></tr></thead><tbody id="monthly-income-table-body"></tbody></table></div>
+            <div id="monthly-income-cards" class="d-md-none"></div>
+          </div>
+        </div>
       </div>
       <div class="row g-3 mb-4" id="summary-category-cards"></div>
       <div class="row g-3 mb-4">
@@ -461,6 +478,16 @@
     <div class="modal-body"><p id="confirm-message">האם למחוק?</p></div>
     <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button><button type="button" class="btn btn-danger" id="confirm-ok-btn">מחק</button></div>
   </div></div>
+</div>
+
+<!-- Mobile Action Bar -->
+<div class="mobile-action-bar d-flex d-md-none" id="mobile-action-bar">
+  <button class="action-bar-btn" onclick="showSection('monthly-summary')">
+    <i class="fas fa-home"></i><span>בית</span>
+  </button>
+  <button class="action-bar-btn" onclick="toggleDrawer()">
+    <i class="fas fa-bars"></i><span>תפריט</span>
+  </button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

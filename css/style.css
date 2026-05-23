@@ -308,9 +308,50 @@ body {
   border-top: 1px solid var(--border);
 }
 
+/* ── Mobile Action Bar ───────────────────────────────────────────────────── */
+.mobile-action-bar {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  background: #ffffff;
+  border-top: 1px solid var(--border);
+  z-index: 950;
+  justify-content: space-around;
+  padding: 4px 0 env(safe-area-inset-bottom, 0);
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
+}
+
+.action-bar-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  padding: 6px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color 0.15s;
+  flex: 1;
+}
+.action-bar-btn i { font-size: 1.15rem; }
+.action-bar-btn:active { color: var(--primary); }
+
+/* ── Mobile Cards (replaces table on mobile) ─────────────────────────────── */
+.mobile-card {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.mobile-card:last-child { border-bottom: none; }
+.mobile-card .card-amount { font-size: 1.1rem; }
+.mobile-card-meta { font-size: 0.78rem; }
+
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 767.98px) {
-  .app-main { margin-right: 0; padding: 16px 12px 24px; }
+  .app-main { margin-right: 0; padding: 16px 12px 80px; }
   .stat-value { font-size: 1.2rem; }
   .section-header { flex-wrap: wrap; gap: 8px; }
 
