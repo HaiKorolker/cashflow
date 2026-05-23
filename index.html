@@ -18,14 +18,15 @@
 
 <!-- NAVBAR -->
 <nav class="navbar navbar-dark app-navbar px-3 d-flex justify-content-between align-items-center">
-  <span class="navbar-brand fw-bold fs-5 mb-0"><i class="fas fa-wallet me-2"></i>מעקב הוצאות</span>
+  <button class="navbar-settings-btn d-md-none" onclick="toggleDrawer()" title="תפריט" id="hamburger-btn">
+    <i class="fas fa-bars"></i>
+  </button>
+  <div class="d-none d-md-block" style="width:40px"></div>
+  <span class="navbar-brand fw-bold fs-5 mb-0 mx-auto"><i class="fas fa-wallet me-2"></i>מעקב הוצאות</span>
   <div class="d-flex align-items-center gap-2">
     <span class="text-white-50 small d-none d-md-inline" id="navbar-date"></span>
     <button class="navbar-settings-btn" onclick="openSettingsModal()" title="הגדרות">
       <i class="fas fa-cog"></i>
-    </button>
-    <button class="navbar-settings-btn d-md-none" onclick="toggleDrawer()" title="תפריט" id="hamburger-btn">
-      <i class="fas fa-bars"></i>
     </button>
   </div>
 </nav>
@@ -267,7 +268,7 @@
 
 <!-- Settings Modal -->
 <div class="modal fade" id="settingsModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title"><i class="fas fa-cog me-2"></i>הגדרות</h5>
@@ -322,7 +323,7 @@
 
 <!-- Add Investment Modal -->
 <div class="modal fade" id="addInvestmentModal" tabindex="-1">
-  <div class="modal-dialog"><div class="modal-content">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title">הוספת חשבון השקעה</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
       <div class="mb-3"><label class="form-label">שם החשבון <span class="text-danger">*</span></label><input type="text" id="modal-inv-name" class="form-control" placeholder="למשל: אקסלנס"></div>
@@ -334,7 +335,7 @@
 
 <!-- Add Loan Modal -->
 <div class="modal fade" id="addLoanModal" tabindex="-1">
-  <div class="modal-dialog"><div class="modal-content">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title">הוספת הלוואה שנתתי</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
       <div class="mb-3"><label class="form-label">שם האדם <span class="text-danger">*</span></label><input type="text" id="modal-loan-person" class="form-control"></div>
@@ -348,7 +349,7 @@
 
 <!-- Expense Modal -->
 <div class="modal fade" id="expenseModal" tabindex="-1">
-  <div class="modal-dialog"><div class="modal-content">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title" id="expenseModalTitle">הוספת הוצאה</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
       <input type="hidden" id="expense-edit-id">
@@ -373,7 +374,7 @@
 
 <!-- Income Modal -->
 <div class="modal fade" id="incomeModal" tabindex="-1">
-  <div class="modal-dialog"><div class="modal-content">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title" id="incomeModalTitle">הוספת הכנסה</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
       <input type="hidden" id="income-edit-id">
@@ -389,7 +390,7 @@
 
 <!-- Standing Order Modal -->
 <div class="modal fade" id="standingModal" tabindex="-1">
-  <div class="modal-dialog"><div class="modal-content">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title" id="standingModalTitle">הוספת הוראת קבע</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
       <input type="hidden" id="standing-edit-id">
@@ -406,7 +407,7 @@
 
 <!-- Deposit Modal -->
 <div class="modal fade" id="depositModal" tabindex="-1">
-  <div class="modal-dialog"><div class="modal-content">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title">הוספת הפקדה</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
       <input type="hidden" id="deposit-inv-id">
@@ -420,7 +421,7 @@
 
 <!-- Yearly Record Modal -->
 <div class="modal fade" id="yearlyModal" tabindex="-1">
-  <div class="modal-dialog"><div class="modal-content">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title">הוספת / עדכון נתון שנתי</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
       <input type="hidden" id="yearly-inv-id">
@@ -434,7 +435,7 @@
 
 <!-- Loan Payment Modal -->
 <div class="modal fade" id="loanPaymentModal" tabindex="-1">
-  <div class="modal-dialog"><div class="modal-content">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title">הוספת תשלום</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
       <input type="hidden" id="loan-payment-loan-id">
@@ -455,7 +456,7 @@
 
 <!-- Confirm Delete Modal -->
 <div class="modal fade" id="confirmModal" tabindex="-1">
-  <div class="modal-dialog modal-sm"><div class="modal-content">
+  <div class="modal-dialog modal-sm modal-dialog-centered"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title">אישור מחיקה</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body"><p id="confirm-message">האם למחוק?</p></div>
     <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button><button type="button" class="btn btn-danger" id="confirm-ok-btn">מחק</button></div>
