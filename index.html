@@ -337,27 +337,35 @@
         <div id="settings-tab-sync" class="d-none">
           <div class="alert alert-info small mb-3">
             <i class="fas fa-info-circle me-1"></i>
-            הפעל את שרת המחשב (port 3000) ובדוק שהטלפון מחובר לאותה WiFi. למצוא IP: פתח cmd ← הקלד <code>ipconfig</code> ← העתק "IPv4 Address".
+            וודא שהמחשב והטלפון מחוברים לאותה WiFi ושרת המחשב פועל (port 3000).
           </div>
-          <div class="mb-3">
+          <div class="mb-4">
             <label class="form-label fw-semibold">כתובת שרת</label>
             <input type="text" id="sync-server-url" class="form-control" placeholder="http://192.168.1.100:3000">
-            <div class="form-text">לדוגמה: http://192.168.1.50:3000</div>
+            <div class="form-text">IP המחשב מופיע בחלון השרת בהפעלה</div>
           </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold">סיסמת סנכרון</label>
-            <input type="password" id="sync-token" class="form-control" placeholder="הסיסמה של אפליקציית המחשב">
-            <div class="form-text">אותה סיסמה שמשמשת להתחברות לשרת המחשב</div>
+
+          <div class="card mb-3">
+            <div class="card-body">
+              <h6 class="fw-bold mb-1"><i class="fas fa-download me-2 text-primary"></i>ייבא מהמחשב → טלפון</h6>
+              <p class="text-muted small mb-3">פותח את דף הסנכרון של המחשב. לחץ "הורד גיבוי לטלפון" ← שמור את הקובץ ← חזור לכאן ← טאב "גיבוי ושחזור" ← ייבא נתונים.</p>
+              <button class="btn btn-primary w-100" onclick="syncPull()">
+                <i class="fas fa-external-link-alt me-1"></i>פתח דף סנכרון
+              </button>
+            </div>
           </div>
-          <div class="d-flex gap-2 mb-3">
-            <button class="btn btn-primary flex-grow-1" onclick="syncPull()">
-              <i class="fas fa-download me-1"></i>ייבא מהמחשב
-            </button>
-            <button class="btn btn-success flex-grow-1" onclick="syncPush()">
-              <i class="fas fa-upload me-1"></i>ייצא למחשב
-            </button>
+
+          <div class="card mb-3">
+            <div class="card-body">
+              <h6 class="fw-bold mb-1"><i class="fas fa-upload me-2 text-success"></i>ייצא מהטלפון → מחשב</h6>
+              <p class="text-muted small mb-3">מוריד קובץ JSON מהטלפון ופותח את דף הסנכרון. העלה את הקובץ בדף שנפתח.</p>
+              <button class="btn btn-success w-100" onclick="syncPush()">
+                <i class="fas fa-file-export me-1"></i>הורד ופתח דף סנכרון
+              </button>
+            </div>
           </div>
-          <div id="sync-status" class="small text-muted"></div>
+
+          <div id="sync-status" class="small text-muted mt-2"></div>
         </div>
       </div>
       <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">סגור</button></div>

@@ -236,52 +236,38 @@ function getSyncParams() {
   return { url, token };
 }
 
+function syncOpenPage() {
+  const url = document.getElementById('sync-server-url')?.value.trim().replace(/\/$/, '');
+  if (!url) { showToast('נא להזין כתובת שרת', 'error'); return; }
+  DB.setSetting('sync_server_url', url);
+  window.open(`${url}/pwa-sync`, '_blank');
+}
+
 async function syncPull() {
-  const params = getSyncParams();
-  if (!params) return;
-  const { url, token } = params;
-  const status = document.getElementById('sync-status');
-  if (status) status.textContent = 'מייבא...';
-  try {
-    const res = await fetch(`${url}/api/sync/export`, { headers: { 'X-Sync-Token': token } });
-    if (res.status === 401) throw new Error('סיסמה שגויה');
-    if (!res.ok) throw new Error(`שגיאת שרת ${res.status}`);
-    const data = await res.json();
-    await DB.importData(data);
-    await DB.setSetting('sync_server_url', url);
-    await loadSettings();
-    showSection(currentSection);
-    const msg = `יובאו ${data.expenses?.length || 0} הוצאות, ${data.income?.length || 0} הכנסות`;
-    showToast(msg);
-    if (status) status.textContent = `✓ ${msg} — ${new Date().toLocaleTimeString('he-IL')}`;
-  } catch (e) {
-    showToast('שגיאת ייבוא: ' + e.message, 'error');
-    if (status) status.textContent = '✗ ' + e.message;
-  }
+  // Fetch from HTTPS→HTTP is blocked by browsers (Mixed Content).
+  // Instead, open the desktop sync page directly in a new tab.
+  syncOpenPage();
 }
 
 async function syncPush() {
-  const params = getSyncParams();
-  if (!params) return;
-  const { url, token } = params;
-  const status = document.getElementById('sync-status');
-  if (status) status.textContent = 'שולח...';
-  try {
-    const data = await DB.exportData();
-    const res = await fetch(`${url}/api/sync/import`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Sync-Token': token },
-      body: JSON.stringify(data)
-    });
-    if (res.status === 401) throw new Error('סיסמה שגויה');
-    if (!res.ok) throw new Error(`שגיאת שרת ${res.status}`);
-    await DB.setSetting('sync_server_url', url);
-    showToast('הנתונים נשלחו למחשב בהצלחה');
-    if (status) status.textContent = `✓ נשלח — ${new Date().toLocaleTimeString('he-IL')}`;
-  } catch (e) {
-    showToast('שגיאת שליחה: ' + e.message, 'error');
-    if (status) status.textContent = '✗ ' + e.message;
+  // Step 1: export JSON from the PWA
+  const data = await DB.exportData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const date = new Date().toISOString().slice(0, 10);
+  a.download = `cashflow-phone-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  // Step 2: open the desktop sync page so the user can upload the file
+  const url = document.getElementById('sync-server-url')?.value.trim().replace(/\/$/, '');
+  if (url) {
+    DB.setSetting('sync_server_url', url);
+    setTimeout(() => window.open(`${url}/pwa-sync`, '_blank'), 800);
   }
+  showToast('הקובץ הורד — העלה אותו בדף הסנכרון שנפתח');
+  const status = document.getElementById('sync-status');
+  if (status) status.textContent = 'הקובץ הורד. בדף הסנכרון: לחץ "העלה נתונים מהטלפון" ← בחר את הקובץ.';
 }
 
 function renderCategoriesList() {
