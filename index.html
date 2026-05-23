@@ -335,8 +335,12 @@
         </div>
         <!-- Sync tab -->
         <div id="settings-tab-sync" class="d-none">
+          <div class="alert alert-info small mb-3">
+            <i class="fas fa-wifi me-1"></i>
+            וודא שהמחשב והטלפון מחוברים לאותה WiFi ושרת המחשב פועל.
+          </div>
           <div class="mb-3">
-            <label class="form-label fw-semibold">כתובת שרת (HTTP)</label>
+            <label class="form-label fw-semibold">כתובת שרת</label>
             <input type="text" id="sync-server-url" class="form-control" placeholder="http://192.168.1.100:3000">
             <div class="form-text">ה-IP מופיע בחלון השרת כשהוא עולה</div>
           </div>
@@ -344,7 +348,7 @@
             <label class="form-label fw-semibold">סיסמת סנכרון</label>
             <input type="password" id="sync-token" class="form-control" placeholder="הסיסמה של אפליקציית המחשב">
           </div>
-          <div class="d-flex gap-2 mb-2">
+          <div class="d-flex gap-2 mb-3">
             <button class="btn btn-primary flex-grow-1" onclick="syncPull()">
               <i class="fas fa-download me-1"></i>ייבא מהמחשב
             </button>
@@ -352,23 +356,7 @@
               <i class="fas fa-upload me-1"></i>ייצא למחשב
             </button>
           </div>
-          <div id="sync-status" class="small text-muted mb-3"></div>
-
-          <details class="mt-2">
-            <summary class="small fw-semibold text-muted" style="cursor:pointer">
-              <i class="fas fa-shield-alt me-1"></i>הגדרה ראשונית — התקנת תעודה (פעם אחת בלבד)
-            </summary>
-            <div class="alert alert-warning small mt-2 mb-0">
-              <p class="mb-2"><strong>כדי שהסנכרון יעבוד ישירות, יש להתקין תעודת אבטחה מהשרת בטלפון — פעולה חד-פעמית:</strong></p>
-              <ol class="mb-2 ps-3">
-                <li>פתח בדפדפן הטלפון: <code>http://[IP]:3000/download-cert</code></li>
-                <li>שמור את הקובץ <code>cashflow.crt</code></li>
-                <li class="mt-1"><strong>אנדרואיד:</strong> הגדרות ← אבטחה ← עוד הגדרות אבטחה ← התקנת תעודה ← תעודת CA ← בחר את הקובץ</li>
-                <li class="mt-1"><strong>אייפון:</strong> אחרי ההורדה ← הגדרות ← כללי ← ניהול מכשיר ← התקן ← אחר כך: הגדרות ← כללי ← אודות ← הגדרות אמון תעודה ← הפעל</li>
-              </ol>
-              <p class="mb-0 text-muted">לאחר ההתקנה, הסנכרון יעבוד אוטומטי ב-WiFi הביתי.</p>
-            </div>
-          </details>
+          <div id="sync-status" class="small text-muted"></div>
         </div>
       </div>
       <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">סגור</button></div>

@@ -228,15 +228,12 @@ function activateSettingsTab(tab) {
 
 // ─── SYNC ─────────────────────────────────────────────────────────────────────
 
-function getSyncUrl() {
-  const raw = document.getElementById('sync-server-url')?.value.trim().replace(/\/$/, '');
-  if (!raw) { showToast('נא להזין כתובת שרת', 'error'); return null; }
-  // Convert http://IP:3000 → https://IP:3443  for direct sync
-  return raw.replace(/^http:\/\/(.+):3000$/, 'https://$1:3443');
-}
-
-function getSyncToken() {
-  return document.getElementById('sync-token')?.value.trim() || '';
+function getSyncParams() {
+  const url = document.getElementById('sync-server-url')?.value.trim().replace(/\/$/, '');
+  const token = document.getElementById('sync-token')?.value.trim();
+  if (!url) { showToast('נא להזין כתובת שרת', 'error'); return null; }
+  if (!token) { showToast('נא להזין סיסמת סנכרון', 'error'); return null; }
+  return { url, token };
 }
 
 function setSyncStatus(msg) {
@@ -245,11 +242,10 @@ function setSyncStatus(msg) {
 }
 
 async function syncPull() {
-  const url = getSyncUrl();
-  if (!url) return;
-  const token = getSyncToken();
-  if (!token) { showToast('נא להזין סיסמת סנכרון', 'error'); return; }
-  setSyncStatus('מתחבר לשרת...');
+  const params = getSyncParams();
+  if (!params) return;
+  const { url, token } = params;
+  setSyncStatus('מייבא נתונים מהמחשב...');
   try {
     const res = await fetch(`${url}/api/sync/export`, {
       headers: { 'X-Sync-Token': token }
@@ -258,31 +254,23 @@ async function syncPull() {
     if (!res.ok) throw new Error(`שגיאת שרת ${res.status}`);
     const data = await res.json();
     await DB.importData(data);
-    const raw = document.getElementById('sync-server-url')?.value.trim().replace(/\/$/, '');
-    await DB.setSetting('sync_server_url', raw);
+    await DB.setSetting('sync_server_url', url);
     await loadSettings();
     showSection(currentSection);
     const msg = `יובאו ${data.expenses?.length || 0} הוצאות, ${data.income?.length || 0} הכנסות`;
     showToast(msg);
     setSyncStatus(`✓ ${msg} — ${new Date().toLocaleTimeString('he-IL')}`);
   } catch (e) {
-    const isCert = e instanceof TypeError && e.message.includes('fetch');
-    if (isCert) {
-      setSyncStatus('⚠️ תעודה לא מותקנת — ראה הוראות למטה');
-      showToast('יש להתקין את תעודת השרת תחילה', 'error');
-    } else {
-      setSyncStatus('✗ ' + e.message);
-      showToast('שגיאת ייבוא: ' + e.message, 'error');
-    }
+    showToast('שגיאת ייבוא: ' + e.message, 'error');
+    setSyncStatus('✗ ' + e.message);
   }
 }
 
 async function syncPush() {
-  const url = getSyncUrl();
-  if (!url) return;
-  const token = getSyncToken();
-  if (!token) { showToast('נא להזין סיסמת סנכרון', 'error'); return; }
-  setSyncStatus('שולח נתונים...');
+  const params = getSyncParams();
+  if (!params) return;
+  const { url, token } = params;
+  setSyncStatus('שולח נתונים למחשב...');
   try {
     const data = await DB.exportData();
     const res = await fetch(`${url}/api/sync/import`, {
@@ -292,19 +280,12 @@ async function syncPush() {
     });
     if (res.status === 401) throw new Error('סיסמה שגויה');
     if (!res.ok) throw new Error(`שגיאת שרת ${res.status}`);
-    const raw = document.getElementById('sync-server-url')?.value.trim().replace(/\/$/, '');
-    await DB.setSetting('sync_server_url', raw);
+    await DB.setSetting('sync_server_url', url);
     showToast('הנתונים נשלחו למחשב בהצלחה');
     setSyncStatus(`✓ נשלח — ${new Date().toLocaleTimeString('he-IL')}`);
   } catch (e) {
-    const isCert = e instanceof TypeError && e.message.includes('fetch');
-    if (isCert) {
-      setSyncStatus('⚠️ תעודה לא מותקנת — ראה הוראות למטה');
-      showToast('יש להתקין את תעודת השרת תחילה', 'error');
-    } else {
-      setSyncStatus('✗ ' + e.message);
-      showToast('שגיאת שליחה: ' + e.message, 'error');
-    }
+    showToast('שגיאת שליחה: ' + e.message, 'error');
+    setSyncStatus('✗ ' + e.message);
   }
 }
 
