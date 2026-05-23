@@ -255,11 +255,11 @@ async function syncPull() {
     if (res.status === 401) throw new Error('סיסמה שגויה');
     if (!res.ok) throw new Error(`שגיאת שרת ${res.status}`);
     const data = await res.json();
-    await DB.importData(data);
+    await DB.replaceData(data);  // החלפה מלאה — המחשב סמכותי
     await DB.setSetting('sync_server_url', url);
     await loadSettings();
     showSection(currentSection);
-    const msg = `יובאו ${data.expenses?.length || 0} הוצאות, ${data.income?.length || 0} הכנסות`;
+    const msg = `סונכרנו ${data.expenses?.length || 0} הוצאות, ${data.income?.length || 0} הכנסות`;
     showToast(msg);
     setSyncStatus(`✓ ${msg} — ${new Date().toLocaleTimeString('he-IL')}`);
   } catch (e) {

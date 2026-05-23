@@ -72,6 +72,14 @@ const DB = (() => {
     }));
   }
 
+  function clearStore(storeName) {
+    return open().then(db => new Promise((resolve, reject) => {
+      const req = db.transaction(storeName, 'readwrite').objectStore(storeName).clear();
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    }));
+  }
+
   // ── Settings (key-value store) ────────────────────────────────────────────────
 
   async function getSetting(key, def) {
@@ -457,6 +465,16 @@ const DB = (() => {
     if (data.payment_methods) await setSetting('payment_methods', data.payment_methods);
   }
 
+  // החלפה מלאה — המחשב סמכותי (משמש ב-syncPull)
+  async function replaceData(data) {
+    if (data.expenses) { await clearStore('expenses'); for (const e of data.expenses) await putRecord('expenses', e); }
+    if (data.income) { await clearStore('income'); for (const i of data.income) await putRecord('income', i); }
+    if (data.standing_orders) { await clearStore('standing_orders'); for (const o of data.standing_orders) await putRecord('standing_orders', o); }
+    if (data.savings) await _saveSavings(data.savings);
+    if (data.categories) await setSetting('categories', data.categories);
+    if (data.payment_methods) await setSetting('payment_methods', data.payment_methods);
+  }
+
   return {
     open, generateId,
     getSetting, setSetting,
@@ -469,6 +487,6 @@ const DB = (() => {
     addDeposit, deleteDeposit, addYearly, updateYearly,
     addLoan, deleteLoan, addLoanPayment, deleteLoanPayment,
     getDashboardMonthly, getDashboardAnnual,
-    exportData, importData
+    exportData, importData, replaceData
   };
 })();
