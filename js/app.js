@@ -229,10 +229,12 @@ function activateSettingsTab(tab) {
 // ─── SYNC ─────────────────────────────────────────────────────────────────────
 
 function getSyncParams() {
-  const url = document.getElementById('sync-server-url')?.value.trim().replace(/\/$/, '');
+  const raw = document.getElementById('sync-server-url')?.value.trim().replace(/\/$/, '');
   const token = document.getElementById('sync-token')?.value.trim();
-  if (!url) { showToast('נא להזין כתובת שרת', 'error'); return null; }
+  if (!raw) { showToast('נא להזין כתובת שרת', 'error'); return null; }
   if (!token) { showToast('נא להזין סיסמת סנכרון', 'error'); return null; }
+  // Auto-upgrade to HTTPS port 3443 for Mixed Content bypass
+  const url = raw.replace(/^http:\/\/([^:]+):3000$/, 'https://$1:3443');
   return { url, token };
 }
 
@@ -261,8 +263,13 @@ async function syncPull() {
     showToast(msg);
     setSyncStatus(`✓ ${msg} — ${new Date().toLocaleTimeString('he-IL')}`);
   } catch (e) {
-    showToast('שגיאת ייבוא: ' + e.message, 'error');
-    setSyncStatus('✗ ' + e.message);
+    if (e.message === 'Failed to fetch') {
+      showToast('יש להתקין תעודה — ראה הוראות בטאב', 'error');
+      setSyncStatus('✗ תעודת האבטחה לא מותקנת בטלפון. הורד אותה מ: http://[IP]:3000/download-cert');
+    } else {
+      showToast('שגיאת ייבוא: ' + e.message, 'error');
+      setSyncStatus('✗ ' + e.message);
+    }
   }
 }
 
@@ -284,8 +291,13 @@ async function syncPush() {
     showToast('הנתונים נשלחו למחשב בהצלחה');
     setSyncStatus(`✓ נשלח — ${new Date().toLocaleTimeString('he-IL')}`);
   } catch (e) {
-    showToast('שגיאת שליחה: ' + e.message, 'error');
-    setSyncStatus('✗ ' + e.message);
+    if (e.message === 'Failed to fetch') {
+      showToast('יש להתקין תעודה — ראה הוראות בטאב', 'error');
+      setSyncStatus('✗ תעודת האבטחה לא מותקנת בטלפון. הורד אותה מ: http://[IP]:3000/download-cert');
+    } else {
+      showToast('שגיאת שליחה: ' + e.message, 'error');
+      setSyncStatus('✗ ' + e.message);
+    }
   }
 }
 

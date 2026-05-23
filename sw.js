@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE = 'cashflow-v8';
+const CACHE = 'cashflow-v9';
 const ASSETS = [
   './index.html',
   './css/style.css',
